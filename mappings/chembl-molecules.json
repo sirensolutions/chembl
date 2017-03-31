@@ -1,0 +1,182 @@
+{
+  "mappings": {
+    "document": {
+      "dynamic_templates": [
+        {
+          "default": {
+            "mapping": {
+              "type": "string",
+              "index": "not_analyzed"
+            },
+            "match": "*",
+            "match_mapping_type": "string"
+          }
+        }
+      ],
+      "properties": {
+        "availability_type": {
+          "type": "long"
+        },
+        "chembl_id": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "chirality": {
+          "type": "long"
+        },
+        "indication_class": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "inorganic_flag": {
+          "type": "long"
+        },
+        "molecule_type": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "molregno": {
+          "type": "long"
+        },
+        "polymer_flag": {
+          "type": "long"
+        },
+        "pref_name": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "structure_type": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "synonyms": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "therapeutic_flag": {
+          "type": "long"
+        },
+        "usan_year": {
+          "type": "date",
+          "format": "year"
+        },
+        "acd_logd": {
+          "type": "double"
+        },
+        "acd_logp": {
+          "type": "double"
+        },
+        "acd_most_apka": {
+          "type": "double"
+        },
+        "acd_most_bpka": {
+          "type": "double"
+        },
+        "alogp": {
+          "type": "double"
+        },
+        "aromatic_rings": {
+          "type": "long"
+        },
+        "canonical_smiles": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "compound_doc_id": {
+          "type": "long"
+        },
+        "compound_name": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "compound_source_description": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "description": {
+          "type": "string"
+        },
+        "efo_id": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "efo_term": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "full_molformula": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "full_mwt": {
+          "type": "double"
+        },
+        "hba": {
+          "type": "long"
+        },
+        "hba_lipinski": {
+          "type": "long"
+        },
+        "hbd": {
+          "type": "long"
+        },
+        "hbd_lipinski": {
+          "type": "long"
+        },
+        "heavy_atoms": {
+          "type": "long"
+        },
+        "helm_notation": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "max_phase_for_ind": {
+          "type": "long"
+        },
+        "mesh_heading": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "mesh_id": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "molecular_species": {
+          "type": "string",
+          "index": "not_analyzed"
+        },
+        "mw_freebase": {
+          "type": "double"
+        },
+        "mw_monoisotopic": {
+          "type": "double"
+        },
+        "num_alerts": {
+          "type": "long"
+        },
+        "num_lipinski_ro5_violations": {
+          "type": "long"
+        },
+        "num_ro5_violations": {
+          "type": "long"
+        },
+        "psa": {
+          "type": "double"
+        },
+        "qed_weighted": {
+          "type": "double"
+        },
+        "ro3_pass": {
+          "type": "string"
+        },
+        "rtb": {
+          "type": "long"
+        },
+        "src_short_name": {
+          "type": "string",
+          "index": "not_analyzed"
+        }
+      }
+    }
+  }
+}
