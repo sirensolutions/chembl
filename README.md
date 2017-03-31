@@ -16,8 +16,8 @@ This are the steps to reproduce the demo.
    * Load the json in elasticsearch with the proper mapping
    * Create the necessary index-pattern in kibi
 
-4) explore the data at your kibi instance: `http://localhost:5606`
+4) explore the data at your kibi instance: http://localhost:5606
 
-5) To persist the state of kibi you can run `dump_kibi.sh`. This requires (elasticdump)[https://www.npmjs.com/package/elasticdump] to be installed.
+5) To persist the state of kibi you can run `dump_kibi.sh`. This requires [elasticdump](https://www.npmjs.com/package/elasticdump) to be installed.
    To save the data and the kibi configuartion in a compressed file you can run `dump_all.sh`.
 
