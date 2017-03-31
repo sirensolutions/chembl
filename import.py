@@ -8,11 +8,17 @@ from elasticsearch import Elasticsearch
 from elasticsearch.helpers import parallel_bulk
 import requests
 from tqdm import tqdm
+import argparse
 
+
+'''import input'''
+parser = argparse.ArgumentParser(description='Import chembl data into elasticsearch')
+parser.add_argument('-es', type=str, default='http://localhost:9220')
+args = parser.parse_args()
 
 '''SETUP'''
 CHEMBL_DB_VERSION= 'chembl_22_1'
-ES_URL = 'http://localhost:9201'
+ES_URL = args.es
 CHEMBL_SQLITE_DB_DIR = CHEMBL_DB_VERSION+'_sqlite'
 CHEMBL_SQLITE_DB = os.path.join(CHEMBL_SQLITE_DB_DIR,CHEMBL_DB_VERSION+'.db')
 CHEMBL_DB_DUMP_FILE = CHEMBL_SQLITE_DB_DIR+'.tar.gz'
@@ -46,11 +52,11 @@ def dict_factory(cursor, row):
     return d
 
 
-tables = [#'activities',
-          # 'assays',
+tables = ['activities',
+          'assays',
           'molecules',
-          # 'papers',
-          #  'target',
+          'papers',
+          'target',
           ]
 
 queries = dict(activities='''SELECT
