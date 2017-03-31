@@ -20,11 +20,11 @@ kibi changes
 - set replicas to 0 and shard to 1
 - revised dashboards for:
 
-* molecules
-* targets
-* papers
-* assays
-* activities
+  * molecules
+  * targets
+  * papers
+  * assays
+  * activities
 
 
 - Targets
