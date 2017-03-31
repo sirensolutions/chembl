@@ -29,35 +29,35 @@ kibi changes
 
 - Targets
 
-* improved table data
-* added external link to chembl
-* added external link to uniprot
-* added heatmap organism/target_type
-* added organism bubble chart
+  * improved table data
+  * added external link to chembl
+  * added external link to uniprot
+  * added heatmap organism/target_type
+  * added organism bubble chart
 
 - Molecules
 
-* improved table data
-* added heatmap of molecule type to indication
-* added donut chart of phase to indication and source to indication
+  * improved table data
+  * added heatmap of molecule type to indication
+  * added donut chart of phase to indication and source to indication
 
 
 - Papers
 
-* improved table data
-* added cloud word for title
-* added cloud word for abstract
+  * improved table data
+  * added cloud word for title
+  * added cloud word for abstract
 
 - Assays
 
-* improved table data
-* added percent barchart for assay score over assay type and tissue
-* added organism bubble diagram
-* added word cloud for assay description
-* added word cloud for assay type
+  * improved table data
+  * added percent barchart for assay score over assay type and tissue
+  * added organism bubble diagram
+  * added word cloud for assay description
+  * added word cloud for assay type
 
 
 - Activity
 
-* improved table data
-* added activity value box plot
+  * improved table data
+  * added activity value box plot
