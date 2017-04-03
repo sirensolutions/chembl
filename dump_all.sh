@@ -16,6 +16,9 @@ elasticdump --input=http://localhost:9201/chembl-papers --type=mapping --output=
 #target
 elasticdump --input=http://localhost:9201/chembl-target --type=analyzer --output=export/chembl-target-analyzer.json
 elasticdump --input=http://localhost:9201/chembl-target --type=mapping --output=export/chembl-target-mappings.json
+#molecules
+elasticdump --input=http://localhost:9201/chembl-molecules --type=analyzer --output=export/chembl-molecules-analyzer.json
+elasticdump --input=http://localhost:9201/chembl-molecules --type=mapping --output=export/chembl-molecules-mappings.json
 
 cp import/*.json export
 

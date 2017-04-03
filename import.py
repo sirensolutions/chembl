@@ -32,16 +32,18 @@ if not os.path.exists(IMPORT_DIR):
 '''download database file'''
 if not os.path.exists(CHEMBL_DB_DUMP_FILE) or \
     not os.path.exists(CHEMBL_SQLITE_DB):
-    r = requests.get(CHEMBL_SQLITE_URL, stream=True)
-    total_size = int(r.headers.get('content-length', 0));
-
-    with open(CHEMBL_SQLITE_DB_DIR+'.tar.gz', 'wb') as f:
-        for data in tqdm(r.iter_content(32*1024),
-                         total=total_size,
-                         unit='B',
-                         unit_scale=True,
-                         desc='Download database dump'):
-            f.write(data)
+    # r = requests.get(CHEMBL_SQLITE_URL, stream=True)
+    # total_size = int(r.headers.get('content-length', 0));
+    #
+    # with open(CHEMBL_SQLITE_DB_DIR+'.tar.gz', 'wb') as f:
+    #     for data in tqdm(r.iter_content(32*1024),
+    #                      total=total_size,
+    #                      unit='B',
+    #                      unit_scale=True,
+    #                      desc='Download database dump'):
+    #         f.write(data)
+    '''download file'''
+    call(["curl", '--output', CHEMBL_DB_DUMP_FILE,'-O', CHEMBL_SQLITE_URL])
     '''uncompress file'''
     call(["tar", "zxvf", "file.tar.gz"])
 
