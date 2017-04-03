@@ -5,7 +5,7 @@ import time
 
 from subprocess import call
 from elasticsearch import Elasticsearch
-from elasticsearch.helpers import parallel_bulk
+from elasticsearch.helpers import parallel_bulk, streaming_bulk
 import requests
 from tqdm import tqdm
 import argparse
@@ -45,7 +45,7 @@ if not os.path.exists(CHEMBL_DB_DUMP_FILE) or \
     '''download file'''
     call(["curl", '--output', CHEMBL_DB_DUMP_FILE,'-O', CHEMBL_SQLITE_URL])
     '''uncompress file'''
-    call(["tar", "zxvf", "file.tar.gz"])
+    call(["tar", "zxvf", CHEMBL_DB_DUMP_FILE])
 
 def dict_factory(cursor, row):
     d = {}
@@ -218,7 +218,7 @@ for table in tables:
             pass
     extracted_counts[table] = i
 
-'''Import json files in elasticsearch'''
+# '''Import json files in elasticsearch'''
 es = Elasticsearch(ES_URL)
 def data_iterator(table, id_field):
     for i, line in tqdm(enumerate(open(os.path.join(IMPORT_DIR,'chembl-%s.json' % table))),
@@ -258,14 +258,33 @@ for table in tables:
     '''load data'''
     load_table_to_es(table)
 
-'''load kibi configuration'''
-for table in tables:
-    index_name = 'chembl-%s' % table
-    es.index(index='.kibi',
-             doc_type='index-pattern',
-             id=index_name,
-             body={"title": index_name})
-es.index(index='.kibi',
-         doc_type='config',
-         id="4.6.4",
-         body={"defaultIndex": "chembl-activities"})
+# '''load empty kibi configuration'''
+# for table in tables:
+#     index_name = 'chembl-%s' % table
+#     es.index(index='.kibi',
+#              doc_type='index-pattern',
+#              id=index_name,
+#              body={"title": index_name})
+# es.index(index='.kibi',
+#          doc_type='config',
+#          id="4.6.4",
+#          body={"defaultIndex": "chembl-activities"})
+
+
+'''load kibi preconfired index'''
+index_name = '.kibi'
+print('deleting',index_name,es.indices.delete(index=index_name,ignore=404, timeout='300s'))
+print('creating',index_name,es.indices.create(index=index_name, ignore=400, timeout='30s', body=json.load(open('kibi/kibi-mappings.json'))))
+
+'''load objects'''
+success, failed = 0, 0
+for ok, item in streaming_bulk(es,
+                               (json.loads(i) for i in open('kibi/kibi-data.json').readlines()),
+                              raise_on_error=False,
+                              chunk_size=1000):
+    if not ok:
+        failed += 1
+    else:
+        success += 1
+
+print('loaded %i objects in .kibi index. %i failed'%(success, failed))
