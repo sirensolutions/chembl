@@ -120,10 +120,10 @@ WHERE
   biotherapeutics.description,
   biotherapeutics.helm_notation,
   drug_indication.max_phase_for_ind,
-  drug_indication.efo_id,
-  drug_indication.efo_term,
-  drug_indication.mesh_id,
-  drug_indication.mesh_heading,
+  group_concat(drug_indication.efo_id, '{0}') AS efo_id,
+  group_concat(drug_indication.efo_term, '{0}') AS efo_term,
+  group_concat(drug_indication.mesh_id, '{0}') AS mesh_id,
+  group_concat(drug_indication.mesh_heading, '{0}') AS mesh_heading,
   compound_structures.canonical_smiles,
   cr.compound_name,
   cr.compound_doc_id,
@@ -218,7 +218,7 @@ for table in tables:
             pass
     extracted_counts[table] = i
 
-# '''Import json files in elasticsearch'''
+'''Import json files in elasticsearch'''
 es = Elasticsearch(ES_URL)
 def data_iterator(table, id_field):
     for i, line in tqdm(enumerate(open(os.path.join(IMPORT_DIR,'chembl-%s.json' % table))),
@@ -274,7 +274,7 @@ for table in tables:
 '''load kibi preconfired index'''
 index_name = '.kibi'
 print('deleting',index_name,es.indices.delete(index=index_name,ignore=404, timeout='300s'))
-print('creating',index_name,es.indices.create(index=index_name, ignore=400, timeout='30s', body=json.load(open('kibi/kibi-mappings.json'))))
+print('creating',index_name,es.indices.create(index=index_name, ignore=400, timeout='30s', body=json.load(open('kibi/kibi-mappings.json'))['.kibi']))
 
 '''load objects'''
 success, failed = 0, 0
