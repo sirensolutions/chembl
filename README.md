@@ -21,3 +21,6 @@ This are the steps to reproduce the demo.
 5) To persist the state of kibi you can run `dump_kibi.sh`. This requires [elasticdump](https://www.npmjs.com/package/elasticdump) to be installed.
    To save the data and the kibi configuartion in a compressed file you can run `dump_all.sh`.
 
+NOTES
+-----
+This demo requires python >2.7.10 in order for the TLS1.2 to work with the searchguard plugin installed in kibi >5
