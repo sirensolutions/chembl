@@ -276,7 +276,7 @@ def data_iterator(table, id_field):
 def load_table_to_es(table):
     success, failed = 0, 0
     start_time = time.time()
-    for ok, item in parallel_bulk(es,
+    for ok, item in streaming_bulk(es,
                                   data_iterator(table,
                                                 table2id[table]),
                                   raise_on_error=False,
