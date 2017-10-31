@@ -46,7 +46,7 @@
       ],
       "properties": {
         "abstract": {
-           "type": "text",,
+           "type": "text",
           "fielddata": true,
           "analyzer": "english"
         },

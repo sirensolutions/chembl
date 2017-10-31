@@ -47,7 +47,8 @@
       ],
       "properties": {
         "activity_comment": {
-          "type": "string",
+          "type": "text",
+          "fielddata": true,
           "analyzer": "english"
         },
         "activity_id": {

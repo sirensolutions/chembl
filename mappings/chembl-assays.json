@@ -73,7 +73,8 @@
           "type": "long"
         },
         "description": {
-          "type": "string",
+          "type": "text",
+          "fielddata": true,
           "analyzer": "english"
         },
         "doc_id": {
