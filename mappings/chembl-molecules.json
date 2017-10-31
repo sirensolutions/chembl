@@ -98,7 +98,8 @@
           "index": "not_analyzed"
         },
         "description": {
-          "type": "string"
+          "type": "text",
+          "fielddata": true
         },
         "efo_id": {
           "type": "string",
