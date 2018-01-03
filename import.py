@@ -17,11 +17,13 @@ warnings.filterwarnings("ignore")
 '''import input'''
 parser = argparse.ArgumentParser(description='Import chembl data into elasticsearch')
 parser.add_argument('-es', type=str, default='https://localhost:9222')
+parser.add_argument('-api', type=str, default='https://localhost:8009')
 args = parser.parse_args()
 
 '''SETUP'''
 CHEMBL_DB_VERSION = 'chembl_23'
 ES_URL = args.es
+FINGERPRINT_API_URL = args.api
 ES_AUTH = ('admin', 'password')
 CHEMBL_SQLITE_DB_DIR = CHEMBL_DB_VERSION + '_sqlite'
 CHEMBL_SQLITE_DB = os.path.join(CHEMBL_SQLITE_DB_DIR, CHEMBL_DB_VERSION + '.db')
@@ -231,7 +233,7 @@ for table in tables:
                     except TypeError:
                         pass
                 if table == 'molecules' and row['canonical_smiles']:
-                    fingerprint_r = s.get('https://localhost:8009/binaryfingerprint',
+                    fingerprint_r = s.get(FINGERPRINT_API_URL+'/binaryfingerprint',
                                           params={'smiles':row['canonical_smiles']},
                                           verify=False)
                     if fingerprint_r.ok:

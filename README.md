@@ -9,10 +9,12 @@ This are the steps to reproduce the demo.
 
 2) ```pip install -r requirements.txt```
 
-3) run ```python import.py -es http://localhost:9201``` using the port your elasticsearch instance is exposed to and wait for it to complete
+3) run ```python import.py -es http://localhost:9201  -api https://localhost:8009``` using the urls your elasticsearch
+instance and the fingerprint API are exposed to and wait for it to complete
    this will:
    * Download and extract the chembl dumps in SQLite format
    * Query the database and generate the input json file in the `import` directory
+   * Digest all the compounds into compatible fingerprints
    * Load the json in elasticsearch with the proper mapping
    * Create the necessary index-pattern in kibi
 
