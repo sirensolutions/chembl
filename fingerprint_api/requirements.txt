@@ -1,0 +1,8 @@
+flask==0.12.2
+elasticsearch
+requests
+pyopenssl
+flask-cors
+chemfp
+gunicorn
+uwsgi
