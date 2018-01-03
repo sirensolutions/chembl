@@ -1,11 +1,11 @@
-KIBI ChEMBL DEMO II
-===================
+KIBI LIFE SCIENCE DEMO
+======================
 
 The code in this repo can reproduce the second Kibi ChEMBL demo.
 This are the steps to reproduce the demo.
 
 1) Start up a kibi instance. E.g. using docker:
-    ```docker run  -d -p 5606:5606 -p 9201:9220 --net=chembl --name chembl-kibi sirensolutions/kibi-community-standard:4.6.4```
+    ```docker run  -d -p 5606:5606 -p 9201:9220 --net=chembl --name chembl-kibi sirensolutions/siren-platform:5.4.3-2```
 
 2) ```pip install -r requirements.txt```
 
