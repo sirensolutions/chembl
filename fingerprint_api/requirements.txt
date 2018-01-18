@@ -6,3 +6,5 @@ flask-cors
 chemfp
 gunicorn
 uwsgi
+Pillow
+numpy

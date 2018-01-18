@@ -6,9 +6,11 @@ import time
 import warnings
 from subprocess import call
 
-import numpy as np
+# import numpy as np
+import certifi
 import requests
 from elasticsearch import Elasticsearch, RequestsHttpConnection
+# from elasticsearch import Elasticsearch
 from elasticsearch.helpers import parallel_bulk, streaming_bulk
 from tqdm import tqdm
 
@@ -16,8 +18,8 @@ warnings.filterwarnings("ignore")
 
 '''import input'''
 parser = argparse.ArgumentParser(description='Import chembl data into elasticsearch')
-parser.add_argument('-es', type=str, default='https://localhost:9222')
-parser.add_argument('-api', type=str, default='https://localhost:8009')
+parser.add_argument('-es', type=str, default='https://localhost:9200')
+parser.add_argument('-api', type=str, default='http://localhost:8009')
 args = parser.parse_args()
 
 '''SETUP'''
@@ -27,6 +29,7 @@ FINGERPRINT_API_URL = args.api
 ES_AUTH = ('admin', 'password')
 CHEMBL_SQLITE_DB_DIR = CHEMBL_DB_VERSION + '_sqlite'
 CHEMBL_SQLITE_DB = os.path.join(CHEMBL_SQLITE_DB_DIR, CHEMBL_DB_VERSION + '.db')
+CHEMBL_SQLITE_FULL_PATH = os.path.join(CHEMBL_DB_VERSION, CHEMBL_SQLITE_DB)
 CHEMBL_DB_DUMP_FILE = CHEMBL_SQLITE_DB_DIR + '.tar.gz'
 CHEMBL_SQLITE_URL = 'http://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/releases/%s/%s' % (
     CHEMBL_DB_VERSION, CHEMBL_DB_DUMP_FILE)
@@ -39,7 +42,7 @@ s = requests.Session()
 '''download database file'''
 # if not os.path.exists(CHEMBL_DB_DUMP_FILE) or \
 #         not os.path.exists(CHEMBL_SQLITE_DB):
-#     print CHEMBL_DB_DUMP_FILE, CHEMBL_SQLITE_DB
+#     print (CHEMBL_DB_DUMP_FILE, CHEMBL_SQLITE_DB)
 #     # r = requests.get(CHEMBL_SQLITE_URL, stream=True)
 #     # total_size = int(r.headers.get('content-length', 0));
 #     #
@@ -63,12 +66,13 @@ def dict_factory(cursor, row):
     return d
 
 
-tables = ['activities',
-          'assays',
-          'molecules',
-          'papers',
-          'target',
-          ]
+tables = [
+    'activities',
+    'assays',
+    'molecules',
+    'papers',
+    'target',
+]
 
 queries = dict(activities='''SELECT
   activities.molregno,
@@ -193,12 +197,13 @@ FROM
 GROUP BY target_dictionary.tid;
   ''' % CONCAT_SEPARATOR)
 
-table2id = dict(activities='activity_id',
-                assays='assay_id',
-                molecules='molregno',
-                papers='doc_id',
-                target='tid'
-                )
+table2id = dict(
+    activities='activity_id',
+    assays='assay_id',
+    molecules='molregno',
+    papers='doc_id',
+    target='tid'
+)
 
 
 def encode_vector(v):
@@ -210,11 +215,11 @@ def encode_vector(v):
 
 '''Export data to json files'''
 try:
-    db = sqlite3.connect(CHEMBL_SQLITE_DB)
+    db = sqlite3.connect(CHEMBL_SQLITE_FULL_PATH)
     db.row_factory = dict_factory  # sqlite3.Row
     cursor = db.cursor()
 except:
-    print 'no chembl database available'
+    print ('no chembl database available')
 
 extracted_counts = dict()
 for table in tables:
@@ -223,7 +228,7 @@ for table in tables:
     dump_file_name = os.path.join(IMPORT_DIR, 'chembl-%s.json' % table)
     if not os.path.exists(dump_file_name):
         cursor.execute(queries[table])
-        print 'Extracting data for table %s' % table
+        print ('Extracting data for table %s' % table)
         with open(dump_file_name, 'w') as f:
             for i, row in tqdm(enumerate(cursor)):
                 for k, v, in row.items():
@@ -232,9 +237,12 @@ for table in tables:
                             row[k] = list(set(v.split(CONCAT_SEPARATOR)))
                     except TypeError:
                         pass
+                if table == 'papers' and isinstance(row['authors'], str):
+                    row['author_list'] = row['authors'].split(", ")
+
                 if table == 'molecules' and row['canonical_smiles']:
                     fingerprint_r = s.get(FINGERPRINT_API_URL+'/binaryfingerprint',
-                                          params={'smiles':row['canonical_smiles']},
+                                          params={'smiles': row['canonical_smiles']},
                                           verify=False)
                     if fingerprint_r.ok:
                         fingerprint = fingerprint_r.json()
@@ -242,10 +250,10 @@ for table in tables:
                         # row['fingerprint'] = fingerprint_int
                         # row['fingerprint_b'] = (fingerprint>0).astype(np.int8).tolist()
                         # row['fingerprint_nz'] = ' '.join([str(j) for j in fingerprint.nonzero()[0].tolist()])
-                        row['fingerprint_all'] = ' '.join(encode_vector(map(int,list(fingerprint))))
+                        row['fingerprint_all'] = ' '.join(encode_vector(map(int, list(fingerprint))))
                         # row['fingerprint_minhash'] = row['fingerprint_nz']
                     else:
-                        print i,'error finger print for smiles: '+ row['canonical_smiles']
+                        print(i, 'error finger print for smiles: ' + row['canonical_smiles'])
 
                 f.write(json.dumps(row) + '\n')
         print('exporting table %s took %i seconds, %i rows' % (table, time.time() - start_time, i))
@@ -255,6 +263,18 @@ for table in tables:
     extracted_counts[table] = i
 
 '''Import json files in elasticsearch'''
+# SSL client authentication using client_cert and client_key
+# es = Elasticsearch(
+#     ['https://<username>:<password>@localhost:9220'],
+#     # http_auth=('<username>', '<password>'),
+#     # port=9220,
+#     use_ssl=True,
+#     verify_certs=True,
+#     ca_certs='./pki/searchguard/ca.pem',
+#     client_cert='./pki/searchguard/CN=sgadmin.crt.pem',
+#     client_key='./pki/searchguard/CN=sgadmin.key.pem'
+# )
+
 es = Elasticsearch(ES_URL,
                    use_ssl=True,
                    verify_certs=False,
@@ -314,21 +334,38 @@ for table in tables:
 #          body={"defaultIndex": "chembl-activities"})
 
 
-# '''load kibi preconfired index'''
-# index_name = '.kibi'
-# print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
-# print('creating', index_name, es.indices.create(index=index_name, ignore=400, timeout='30s',
-#                                                 body=json.load(open('kibi/kibi-mappings.json'))['.kibi']))
+# '''load kibi preconfigured index'''
+index_name = '.kibi'
+print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
+print('creating', index_name, es.indices.create(index=index_name, ignore=400, timeout='30s',
+                                                body=json.load(open('kibi/mapping-.kibi.json'))['.kibi']))
+
+index_name = '.kibiaccess'
+print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
+print('creating', index_name, es.indices.create(index=index_name, ignore=400, timeout='30s',
+                                                body=json.load(open('kibi/mapping-.kibiaccess.json'))['.kibi']))
 #
 # '''load objects'''
-# success, failed = 0, 0
-# for ok, item in streaming_bulk(es,
-#                                (json.loads(i) for i in open('kibi/kibi-data.json').readlines()),
-#                                raise_on_error=False,
-#                                chunk_size=1000):
-#     if not ok:
-#         failed += 1
-#     else:
-#         success += 1
-#
-# print('loaded %i objects in .kibi index. %i failed' % (success, failed))
+success, failed = 0, 0
+for ok, item in streaming_bulk(es,
+                               (json.loads(i) for i in open('kibi/data-.kibi.json').readlines()),
+                               raise_on_error=False,
+                               chunk_size=1000):
+    if not ok:
+        failed += 1
+    else:
+        success += 1
+
+print('loaded %i objects in .kibi index. %i failed' % (success, failed))
+
+success, failed = 0, 0
+for ok, item in streaming_bulk(es,
+                               (json.loads(i) for i in open('kibi/data-.kibiaccess.json').readlines()),
+                               raise_on_error=False,
+                               chunk_size=1000):
+    if not ok:
+        failed += 1
+    else:
+        success += 1
+
+print('loaded %i objects in .kibiaccess index. %i failed' % (success, failed))
