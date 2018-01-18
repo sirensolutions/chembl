@@ -7,7 +7,7 @@ These are the steps to reproduce the demo.
 1) Start up a Investigate instance. E.g. using docker:
     ```docker run  -d -p 5606:5606 -p 9201:9220 --net=chembl --name chembl-kibi sirensolutions/siren-platform:5.4.3-2```
 
-2) Start a local fingerprint API. Docker required.
+2) [Optional] Start a local fingerprint API. Docker required.
     ```
     cd fingerprint_api
     docker build -t fp_api:latest .

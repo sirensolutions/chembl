@@ -19,7 +19,7 @@ warnings.filterwarnings("ignore")
 '''import input'''
 parser = argparse.ArgumentParser(description='Import chembl data into elasticsearch')
 parser.add_argument('-es', type=str, default='https://localhost:9200')
-parser.add_argument('-api', type=str, default='http://localhost:8009')
+parser.add_argument('-api', type=str, default='https://smiles-to-fingerprint-dot-chemical-search.appspot.com')
 args = parser.parse_args()
 
 '''SETUP'''
