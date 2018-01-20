@@ -1,0 +1,3 @@
+dispatch:
+    - url: "api.chemicalfingerprint.siren.io/*"
+      module: smiles-to-fingerprint
