@@ -18,8 +18,11 @@ warnings.filterwarnings("ignore")
 
 '''import input'''
 parser = argparse.ArgumentParser(description='Import chembl data into elasticsearch')
-parser.add_argument('-es', type=str, default='https://localhost:9200')
+parser.add_argument('-es', type=str, default='https://localhost:9220')
 parser.add_argument('-api', type=str, default='https://smiles-to-fingerprint-dot-chemical-search.appspot.com')
+parser.add_argument('-table', dest='tables', action='append', default=[], help='tables to load/update')
+parser.add_argument('-keep_indexes', action="store_true")
+parser.add_argument('-mappings', default='kibi')
 args = parser.parse_args()
 
 '''SETUP'''
@@ -85,10 +88,14 @@ queries = dict(activities='''SELECT
   activities.standard_flag,
   activities.standard_type,
   activities.activity_comment,
+  docs.pubmed_id,
   ((lower(activity_comment) LIKE '%not active%') OR (lower(activity_comment) LIKE '%inactive%'))  AS inactive,
   activities.data_validity_comment
 FROM
-  activities''',
+  activities
+  LEFT JOIN docs
+  ON activities.doc_id = docs.doc_id
+  ''',
                assays='''SELECT
   assays.assay_id,
   assays.assay_type,
@@ -106,14 +113,16 @@ FROM
   assays.assay_strain,
   assays.assay_tissue,
   assays.assay_subcellular_fraction,
-  relationship_type.relationship_desc
+  relationship_type.relationship_desc,
+  docs.pubmed_id
 FROM
-  assays,
-  assay_type,
-  relationship_type
-WHERE
-  assays.assay_type = assay_type.assay_type AND
-  relationship_type.relationship_type = assays.relationship_type;
+  assays
+  LEFT JOIN assay_type
+  ON assays.assay_type = assay_type.assay_type
+  LEFT JOIN relationship_type
+  ON assays.relationship_type = relationship_type.relationship_type
+  LEFT JOIN docs
+  ON assays.doc_id = docs.doc_id
   ''',
                molecules='''SELECT
   group_concat(molecule_synonyms.synonyms, '{0}') AS synonyms,
@@ -133,7 +142,7 @@ WHERE
   biotherapeutics.description,
   biotherapeutics.helm_notation,
   drug_indication.max_phase_for_ind,
-  group_concat(drug_indication.efo_id, '{0}') AS efo_id,
+  replace(group_concat(drug_indication.efo_id, '{0}'), ':', '_') AS efo_id,
   group_concat(drug_indication.efo_term, '{0}') AS efo_term,
   group_concat(drug_indication.mesh_id, '{0}') AS mesh_id,
   group_concat(drug_indication.mesh_heading, '{0}') AS mesh_heading,
@@ -221,8 +230,21 @@ try:
 except:
     print ('no chembl database available')
 
+tt = args.tables
+# if len(args.tables):
+#     tt = args.tables
+# else:
+#     tt = tables
+
+for table in tt:
+    dump_file_name = os.path.join(IMPORT_DIR, 'chembl-%s.json' % table)
+    try:
+        os.remove(dump_file_name)
+    except:
+        print ('can not remove file: %s' % dump_file_name)
+
 extracted_counts = dict()
-for table in tables:
+for table in tt:
     start_time = time.time()
     i = 0
     dump_file_name = os.path.join(IMPORT_DIR, 'chembl-%s.json' % table)
@@ -241,6 +263,8 @@ for table in tables:
                     row['author_list'] = row['authors'].split(", ")
 
                 if table == 'molecules' and row['canonical_smiles']:
+                    # print(row['canonical_smiles'])
+                    # print(FINGERPRINT_API_URL + '/binaryfingerprint?smiles=' + row['canonical_smiles'])
                     fingerprint_r = s.get(FINGERPRINT_API_URL+'/binaryfingerprint',
                                           params={'smiles': row['canonical_smiles']},
                                           verify=False)
@@ -310,8 +334,7 @@ def load_table_to_es(table):
     print(
         'loading %s in es took %i seconds, %i success, %i failed ' % (table, time.time() - start_time, success, failed))
 
-
-for table in tables:
+for table in tt:
     '''prepare indexes'''
     index_name = 'chembl-%s' % table
     print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
@@ -335,20 +358,22 @@ for table in tables:
 
 
 # '''load kibi preconfigured index'''
-index_name = '.kibi'
-print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
-print('creating', index_name, es.indices.create(index=index_name, ignore=400, timeout='30s',
-                                                body=json.load(open('kibi/mapping-.kibi.json'))['.kibi']))
 
-index_name = '.kibiaccess'
-print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
-print('creating', index_name, es.indices.create(index=index_name, ignore=400, timeout='30s',
-                                                body=json.load(open('kibi/mapping-.kibiaccess.json'))['.kibi']))
+if not args.keep_indexes:
+    index_name = '.kibi'
+    print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
+    print('creating', index_name, es.indices.create(index=index_name, ignore=400, timeout='30s',
+                                                    body=json.load(open('%s/mapping-.kibi.json' %(args.mappings)))['.kibi']))
+
+    index_name = '.kibiaccess'
+    print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
+    print('creating', index_name, es.indices.create(index=index_name, ignore=400, timeout='30s',
+                                                    body=json.load(open('%s/mapping-.kibiaccess.json' %(args.mappings)))['.kibiaccess']))
 #
 # '''load objects'''
 success, failed = 0, 0
 for ok, item in streaming_bulk(es,
-                               (json.loads(i) for i in open('kibi/data-.kibi.json').readlines()),
+                               (json.loads(i) for i in open('%s/data-.kibi.json' % (args.mappings)).readlines()),
                                raise_on_error=False,
                                chunk_size=1000):
     if not ok:
@@ -360,7 +385,7 @@ print('loaded %i objects in .kibi index. %i failed' % (success, failed))
 
 success, failed = 0, 0
 for ok, item in streaming_bulk(es,
-                               (json.loads(i) for i in open('kibi/data-.kibiaccess.json').readlines()),
+                               (json.loads(i) for i in open('%s/data-.kibiaccess.json' % (args.mappings)).readlines()),
                                raise_on_error=False,
                                chunk_size=1000):
     if not ok:

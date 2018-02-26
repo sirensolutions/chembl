@@ -55,6 +55,21 @@ def get_query_from_smiles(smiles):
     return ' '.join(encoded_fingerprint)
 
 
+def transparent(img):
+    img = img.convert('RGBA')
+    datas = img.getdata()
+
+    new_data = []
+    for item in datas:
+        if item[0] == 255 and item[1] == 255 and item[2] == 255:
+            new_data.append((255, 255, 255, 0))
+        else:
+            new_data.append(item)
+
+    img.putdata(new_data)
+    return img
+
+
 def trim(image):
     bg = Image.new(image.mode, image.size, image.getpixel((0, 0)))
     diff = ImageChops.difference(image, bg)
@@ -68,10 +83,12 @@ def generate_depiction_from_smiles(smiles):
     m = Chem.MolFromSmiles(smiles)
     with tempfile.NamedTemporaryFile(suffix=".png", delete=True) as temp:
         AllChem.Compute2DCoords(m)
-        Draw.MolToFile(m, temp.name, size=(250, 250))
+        Draw.MolToFile(m, temp.name, size=(1250, 1250))
         with tempfile.NamedTemporaryFile(suffix="-cropped.png", delete=True) as tempCropped:
             image = Image.open(temp.name)
             image = trim(image)
+            image = transparent(image)
+            image.thumbnail((110, 180), Image.ANTIALIAS)
             image.save(tempCropped.name)
             return send_file(tempCropped.name, mimetype='image/gif')
 

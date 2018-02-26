@@ -27,35 +27,41 @@ instance and the fingerprint API are exposed to and wait for it to complete
    * Create the necessary index-pattern in Investigate
 
 5) explore the data at your Investigate instance: http://localhost:5606
+
+```
 $ cd ~/src/repos/kibi-internal
 $ grep 9220 config/investigate.yml
 elasticsearch.url: "http://localhost:9220"
 $ npm start
-
+```
 
 6) To persist the state of Investigate you can run `dump_kibi.sh`. This requires [elasticdump](https://www.npmjs.com/package/elasticdump) to be installed.
    To save the data and the kibi configuartion in a compressed file you can run `dump_all.sh`.
 
 
-6 Alterntive ways to persist the data:
+6 Alternative ways to persist the data:
 
+```
 $ # To bypass unauthorised connections
 $ export NODE_TLS_REJECT_UNAUTHORIZED=0
 $ elasticdump --input=https://<username>:<password>@localhost:9220/.kibi --output=kibi/kibi-mappings.json —type=mapping
 $ elasticdump --input=https://<username>:<password>@localhost:9220/.kibiaccess --output=kibi/kibiacces-mappings.json —type=mapping
 $ elasticdump --input=https://<username>:<password>@localhost:9220/.kibiaccess --output=kibi/kibiacces-data.json —type=data
+```
 
-Alternatively you can dump all the files with `bin/investigate backup`. But first make sure you include the ‘.kibiaccess’ index in ‘investigate_access_control.acl.index’ in config/investigate.yml (unless this issue is fixed in github: https://github.com/sirensolutions/kibi-internal/issues/4175)
+Alternatively you can dump all the files with `bin/investigate backup`.
 
+```
 $ # To bypass unauthorised connections
 $ export NODE_TLS_REJECT_UNAUTHORIZED=0
-$ bin/investigate backup --dev --backup-dir kibi
-
-
+$ bin/investigate backup --dev --backup-dir investigate
+```
 
 
 NOTES
 -----
-This demo requires python >2.7.10 in order for the TLS1.2 to work with the searchguard plugin installed in kibi >5.
+* This demo requires python >2.7.10 in order for the TLS1.2 to work with the searchguard plugin installed in kibi >5.
 
-The fingerprint API can be quickly deployed on google app engine using the prepared `app.yaml` file
+* The fingerprint API can be quickly deployed on google app engine using the prepared `app.yaml` file
+
+* To include ensembl ids in the `chembl-target` index, download the mappings (from Ensembl's BioMart or UniProt), format the file in CSV having the uniprot IDs in the first column and the Ensembl Ids in the second and run `include_ensembl_ids.py` script.
