@@ -4,3 +4,5 @@ venv/
 export/
 import/
 chembl_*
+*life.siren.io.cert
+*life.siren.io.key
