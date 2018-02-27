@@ -32,7 +32,7 @@ FINGERPRINT_API_URL = args.api
 ES_AUTH = ('admin', 'password')
 CHEMBL_SQLITE_DB_DIR = CHEMBL_DB_VERSION + '_sqlite'
 CHEMBL_SQLITE_DB = os.path.join(CHEMBL_SQLITE_DB_DIR, CHEMBL_DB_VERSION + '.db')
-# CHEMBL_SQLITE_FULL_PATH = os.path.join(CHEMBL_DB_VERSION, CHEMBL_SQLITE_DB)
+CHEMBL_SQLITE_FULL_PATH = os.path.join(CHEMBL_DB_VERSION, CHEMBL_SQLITE_DB)
 CHEMBL_DB_DUMP_FILE = CHEMBL_SQLITE_DB_DIR + '.tar.gz'
 CHEMBL_SQLITE_URL = 'http://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/releases/%s/%s' % (
     CHEMBL_DB_VERSION, CHEMBL_DB_DUMP_FILE)
@@ -224,7 +224,7 @@ def encode_vector(v):
 
 '''Export data to json files'''
 try:
-    db = sqlite3.connect(CHEMBL_SQLITE_DB)
+    db = sqlite3.connect(CHEMBL_SQLITE_FULL_PATH)
     db.row_factory = dict_factory  # sqlite3.Row
     cursor = db.cursor()
 except:
