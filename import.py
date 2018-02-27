@@ -230,11 +230,11 @@ try:
 except:
     print ('no chembl database available')
 
-tt = args.tables
-# if len(args.tables):
-#     tt = args.tables
-# else:
-#     tt = tables
+# tt = args.tables
+if len(args.tables):
+    tt = args.tables
+else:
+    tt = tables
 
 for table in tt:
     dump_file_name = os.path.join(IMPORT_DIR, 'chembl-%s.json' % table)
