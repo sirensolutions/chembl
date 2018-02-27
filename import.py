@@ -32,7 +32,7 @@ FINGERPRINT_API_URL = args.api
 ES_AUTH = ('admin', 'password')
 CHEMBL_SQLITE_DB_DIR = CHEMBL_DB_VERSION + '_sqlite'
 CHEMBL_SQLITE_DB = os.path.join(CHEMBL_SQLITE_DB_DIR, CHEMBL_DB_VERSION + '.db')
-CHEMBL_SQLITE_FULL_PATH = os.path.join(CHEMBL_DB_VERSION, CHEMBL_SQLITE_DB)
+# CHEMBL_SQLITE_FULL_PATH = os.path.join(CHEMBL_DB_VERSION, CHEMBL_SQLITE_DB)
 CHEMBL_DB_DUMP_FILE = CHEMBL_SQLITE_DB_DIR + '.tar.gz'
 CHEMBL_SQLITE_URL = 'http://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/releases/%s/%s' % (
     CHEMBL_DB_VERSION, CHEMBL_DB_DUMP_FILE)
@@ -43,23 +43,23 @@ if not os.path.exists(IMPORT_DIR):
 
 s = requests.Session()
 '''download database file'''
-# if not os.path.exists(CHEMBL_DB_DUMP_FILE) or \
-#         not os.path.exists(CHEMBL_SQLITE_DB):
-#     print (CHEMBL_DB_DUMP_FILE, CHEMBL_SQLITE_DB)
-#     # r = requests.get(CHEMBL_SQLITE_URL, stream=True)
-#     # total_size = int(r.headers.get('content-length', 0));
-#     #
-#     # with open(CHEMBL_SQLITE_DB_DIR+'.tar.gz', 'wb') as f:
-#     #     for data in tqdm(r.iter_content(32*1024),
-#     #                      total=total_size,
-#     #                      unit='B',
-#     #                      unit_scale=True,
-#     #                      desc='Download database dump'):
-#     #         f.write(data)
-#     '''download file'''
-#     call(["curl", '--output', CHEMBL_DB_DUMP_FILE, '-O', CHEMBL_SQLITE_URL])
-#     '''uncompress file'''
-#     call(["tar", "zxvf", CHEMBL_DB_DUMP_FILE])
+if not os.path.exists(CHEMBL_DB_DUMP_FILE) or \
+        not os.path.exists(CHEMBL_SQLITE_DB):
+    print (CHEMBL_DB_DUMP_FILE, CHEMBL_SQLITE_DB)
+    # r = requests.get(CHEMBL_SQLITE_URL, stream=True)
+    # total_size = int(r.headers.get('content-length', 0));
+    #
+    # with open(CHEMBL_SQLITE_DB_DIR+'.tar.gz', 'wb') as f:
+    #     for data in tqdm(r.iter_content(32*1024),
+    #                      total=total_size,
+    #                      unit='B',
+    #                      unit_scale=True,
+    #                      desc='Download database dump'):
+    #         f.write(data)
+    '''download file'''
+    call(["curl", '--output', CHEMBL_DB_DUMP_FILE, '-O', CHEMBL_SQLITE_URL])
+    '''uncompress file'''
+    call(["tar", "zxvf", CHEMBL_DB_DUMP_FILE])
 
 
 def dict_factory(cursor, row):
@@ -224,7 +224,7 @@ def encode_vector(v):
 
 '''Export data to json files'''
 try:
-    db = sqlite3.connect(CHEMBL_SQLITE_FULL_PATH)
+    db = sqlite3.connect(CHEMBL_SQLITE_DB)
     db.row_factory = dict_factory  # sqlite3.Row
     cursor = db.cursor()
 except:
