@@ -333,7 +333,7 @@ def load_table_to_es(table):
     print(
         'loading %s in es took %i seconds, %i success, %i failed ' % (table, time.time() - start_time, success, failed))
 
-for table in tt:
+for table in tables:
     '''prepare indexes'''
     index_name = 'chembl-%s' % table
     print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
