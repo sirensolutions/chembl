@@ -230,12 +230,12 @@ except:
     print ('no chembl database available')
 
 # tt = args.tables
-if len(args.tables):
-    tt = args.tables
-else:
-    tt = tables
+# if len(args.tables):
+#     tt = args.tables
+# else:
+#     tt = tables
 
-for table in tt:
+for table in args.tables:
     dump_file_name = os.path.join(IMPORT_DIR, 'chembl-%s.json' % table)
     try:
         os.remove(dump_file_name)
@@ -243,7 +243,7 @@ for table in tt:
         print ('can not remove file: %s' % dump_file_name)
 
 extracted_counts = dict()
-for table in tt:
+for table in tables:
     start_time = time.time()
     i = 0
     dump_file_name = os.path.join(IMPORT_DIR, 'chembl-%s.json' % table)
