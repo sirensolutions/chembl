@@ -299,7 +299,6 @@ for table in tables:
 # )
 
 es = Elasticsearch(ES_URL,
-                   use_ssl=True,
                    verify_certs=False,
                    http_auth=ES_AUTH,
                    connection_class=RequestsHttpConnection)
