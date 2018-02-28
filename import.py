@@ -43,8 +43,7 @@ if not os.path.exists(IMPORT_DIR):
 
 s = requests.Session()
 '''download database file'''
-if not os.path.exists(CHEMBL_DB_DUMP_FILE) or \
-        not os.path.exists(CHEMBL_SQLITE_DB):
+if not os.path.exists(CHEMBL_SQLITE_FULL_PATH):
     print (CHEMBL_DB_DUMP_FILE, CHEMBL_SQLITE_DB)
     # r = requests.get(CHEMBL_SQLITE_URL, stream=True)
     # total_size = int(r.headers.get('content-length', 0));
