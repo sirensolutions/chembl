@@ -23,13 +23,15 @@ parser.add_argument('-api', type=str, default='https://smiles-to-fingerprint-dot
 parser.add_argument('-table', dest='tables', action='append', default=[], help='tables to load/update')
 parser.add_argument('-keep_indexes', action="store_true")
 parser.add_argument('-mappings', default='kibi')
+parser.add_argument('-username', required=False, default='admin')
+parser.add_argument('-password', required=False, default='password')
 args = parser.parse_args()
 
 '''SETUP'''
 CHEMBL_DB_VERSION = 'chembl_23'
 ES_URL = args.es
 FINGERPRINT_API_URL = args.api
-ES_AUTH = ('admin', 'password')
+ES_AUTH = (args.username, args.password)
 CHEMBL_SQLITE_DB_DIR = CHEMBL_DB_VERSION + '_sqlite'
 CHEMBL_SQLITE_DB = os.path.join(CHEMBL_SQLITE_DB_DIR, CHEMBL_DB_VERSION + '.db')
 CHEMBL_SQLITE_FULL_PATH = os.path.join(CHEMBL_DB_VERSION, CHEMBL_SQLITE_DB)
@@ -359,37 +361,37 @@ for table in tables:
 # '''load kibi preconfigured index'''
 
 if not args.keep_indexes:
-    index_name = '.kibi'
+    index_name = '.siren'
     print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
     print('creating', index_name, es.indices.create(index=index_name, ignore=400, timeout='30s',
-                                                    body=json.load(open('%s/mapping-.kibi.json' %(args.mappings)))['.kibi']))
+                                                    body=json.load(open('%s/mapping-.kibi.json' %(args.mappings)))['.siren']))
 
-    index_name = '.kibiaccess'
+    index_name = '.sirenaccess'
     print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
     print('creating', index_name, es.indices.create(index=index_name, ignore=400, timeout='30s',
-                                                    body=json.load(open('%s/mapping-.kibiaccess.json' %(args.mappings)))['.kibiaccess']))
+                                                    body=json.load(open('%s/mapping-.kibiaccess.json' %(args.mappings)))['.sirenaccess']))
 #
 # '''load objects'''
-success, failed = 0, 0
-for ok, item in streaming_bulk(es,
-                               (json.loads(i) for i in open('%s/data-.kibi.json' % (args.mappings)).readlines()),
-                               raise_on_error=False,
-                               chunk_size=1000):
-    if not ok:
-        failed += 1
-    else:
-        success += 1
-
-print('loaded %i objects in .kibi index. %i failed' % (success, failed))
-
-success, failed = 0, 0
-for ok, item in streaming_bulk(es,
-                               (json.loads(i) for i in open('%s/data-.kibiaccess.json' % (args.mappings)).readlines()),
-                               raise_on_error=False,
-                               chunk_size=1000):
-    if not ok:
-        failed += 1
-    else:
-        success += 1
-
-print('loaded %i objects in .kibiaccess index. %i failed' % (success, failed))
+# success, failed = 0, 0
+# for ok, item in streaming_bulk(es,
+#                                (json.loads(i) for i in open('%s/data-.kibi.json' % (args.mappings)).readlines()),
+#                                raise_on_error=False,
+#                                chunk_size=1000):
+#     if not ok:
+#         failed += 1
+#     else:
+#         success += 1
+#
+# print('loaded %i objects in .siren index. %i failed' % (success, failed))
+#
+# success, failed = 0, 0
+# for ok, item in streaming_bulk(es,
+#                                (json.loads(i) for i in open('%s/data-.kibi.json' % (args.mappings)).readlines()),
+#                                raise_on_error=False,
+#                                chunk_size=1000):
+#     if not ok:
+#         failed += 1
+#     else:
+#         success += 1
+#
+# print('loaded %i objects in .sirenaccess index. %i failed' % (success, failed))

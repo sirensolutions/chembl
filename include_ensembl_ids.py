@@ -13,6 +13,8 @@ warnings.filterwarnings('ignore')
 parser = argparse.ArgumentParser(description='Import Uniprot - Ensembl mappings into chembl-papers')
 parser.add_argument('-es', type=str, default='https://localhost:9220')
 parser.add_argument('-mappings', type=str, default='./mart_export_uniprot_ensembl_human.tsv')
+parser.add_argument('-username', type=str, required=False, default='admin')
+parser.add_argument('-password', type=str, required=False, default='password')
 args = parser.parse_args()
 
 def get_number_of_records(es):
@@ -28,7 +30,7 @@ if __name__ == '__main__':
     es = Elasticsearch(args.es,
                        use_ssl=True,
                        verify_certs=False,
-                       http_auth=('admin', 'password'),
+                       http_auth=(args.username, args.password),
                        connection_class=RequestsHttpConnection)
 
     mapping_dict = defaultdict(list)
