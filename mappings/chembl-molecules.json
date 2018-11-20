@@ -22,22 +22,19 @@
           "type": "long"
         },
         "chembl_id": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "chirality": {
           "type": "long"
         },
         "indication_class": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "inorganic_flag": {
           "type": "long"
         },
         "molecule_type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "molregno": {
           "type": "long"
@@ -46,16 +43,13 @@
           "type": "long"
         },
         "pref_name": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "structure_type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "synonyms": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "therapeutic_flag": {
           "type": "long"
@@ -83,35 +77,29 @@
           "type": "long"
         },
         "canonical_smiles": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "compound_doc_id": {
           "type": "long"
         },
         "compound_name": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "compound_source_description": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "description": {
           "type": "text",
           "fielddata": true
         },
         "efo_id": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "efo_term": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "full_molformula": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "full_mwt": {
           "type": "double"
@@ -132,23 +120,19 @@
           "type": "long"
         },
         "helm_notation": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "max_phase_for_ind": {
           "type": "long"
         },
         "mesh_heading": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "mesh_id": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "molecular_species": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "mw_freebase": {
           "type": "double"
@@ -172,14 +156,13 @@
           "type": "double"
         },
         "ro3_pass": {
-          "type": "string"
+          "type": "text"
         },
         "rtb": {
           "type": "long"
         },
         "src_short_name": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "fingerprint": {
           "type": "byte"

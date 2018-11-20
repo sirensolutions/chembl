@@ -51,8 +51,8 @@
           "analyzer": "english"
         },
         "authors": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "text",
+          "index": true
         },
         "author_list": {
           "type": "keyword",
@@ -63,39 +63,31 @@
           }
         },
         "chembl_id": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "doc_id": {
           "type": "long"
         },
         "doc_type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "doi": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "first_page": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "issue": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "journal": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "last_page": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "pubmed_id": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "title": {
           "type": "text",
@@ -103,12 +95,14 @@
           "analyzer": "english"
         },
         "volume": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "year": {
           "type": "date",
           "format": "year"
+        },
+        "patent_id": {
+          "type": "keyword"
         }
       }
     }

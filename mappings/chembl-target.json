@@ -10,28 +10,26 @@
           "type": "keyword",
           "ignore_above": 256
         },
+	"accession": {
+          "type": "keyword"
+	},
         "chembl_id": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "organism": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "pref_name": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "synonyms": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         },
         "tid": {
           "type": "long"
         },
         "target_type": {
-          "type": "string",
-          "index": "not_analyzed"
+          "type": "keyword"
         }
       }
     }

@@ -6,8 +6,8 @@ import time
 import warnings
 from subprocess import call
 
+
 # import numpy as np
-import certifi
 import requests
 from elasticsearch import Elasticsearch, RequestsHttpConnection
 # from elasticsearch import Elasticsearch
@@ -19,48 +19,55 @@ warnings.filterwarnings("ignore")
 '''import input'''
 parser = argparse.ArgumentParser(description='Import chembl data into elasticsearch')
 parser.add_argument('-es', type=str, default='https://localhost:9220')
-parser.add_argument('-api', type=str, default='https://smiles-to-fingerprint-dot-chemical-search.appspot.com')
+parser.add_argument('-api', type=str,  required=False)
 parser.add_argument('-table', dest='tables', action='append', default=[], help='tables to load/update')
-parser.add_argument('-keep_indexes', action="store_true")
 parser.add_argument('-mappings', default='kibi')
 parser.add_argument('-username', required=False, default='admin')
 parser.add_argument('-password', required=False, default='password')
+parser.add_argument('-importdir', required=True)
+parser.add_argument('-chemblsqlite', required=True)
+
 args = parser.parse_args()
 
+if not args.api:
+    from rdkit import Chem
+    from rdkit.Chem import AllChem
+
 '''SETUP'''
-CHEMBL_DB_VERSION = 'chembl_23'
+CHEMBL_DB_VERSION = 'chembl_24'
 ES_URL = args.es
 FINGERPRINT_API_URL = args.api
 ES_AUTH = (args.username, args.password)
-CHEMBL_SQLITE_DB_DIR = CHEMBL_DB_VERSION + '_sqlite'
-CHEMBL_SQLITE_DB = os.path.join(CHEMBL_SQLITE_DB_DIR, CHEMBL_DB_VERSION + '.db')
-CHEMBL_SQLITE_FULL_PATH = os.path.join(CHEMBL_DB_VERSION, CHEMBL_SQLITE_DB)
-CHEMBL_DB_DUMP_FILE = CHEMBL_SQLITE_DB_DIR + '.tar.gz'
-CHEMBL_SQLITE_URL = 'http://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/releases/%s/%s' % (
-    CHEMBL_DB_VERSION, CHEMBL_DB_DUMP_FILE)
+# CHEMBL_SQLITE_DB_DIR = CHEMBL_DB_VERSION + '_sqlite'
+# CHEMBL_SQLITE_DB = os.path.join(CHEMBL_SQLITE_DB_DIR, CHEMBL_DB_VERSION + '.db')
+# CHEMBL_SQLITE_FULL_PATH = os.path.join(CHEMBL_DB_VERSION, CHEMBL_SQLITE_DB)
+# CHEMBL_DB_DUMP_FILE = CHEMBL_SQLITE_DB_DIR + '.tar.gz'
+# CHEMBL_SQLITE_URL = 'http://ftp.ebi.ac.uk/pub/databases/chembl/ChEMBLdb/releases/%s/%s' % (
+#     CHEMBL_DB_VERSION, CHEMBL_DB_DUMP_FILE)
+CHEMBL_SQLITE_FULL_PATH = args.chemblsqlite
 CONCAT_SEPARATOR = '|'
-IMPORT_DIR = 'import'
+IMPORT_DIR = args.importdir #'import'
 if not os.path.exists(IMPORT_DIR):
     os.mkdir(IMPORT_DIR)
 
 s = requests.Session()
 '''download database file'''
-if not os.path.exists(CHEMBL_SQLITE_FULL_PATH):
-    print (CHEMBL_DB_DUMP_FILE, CHEMBL_SQLITE_DB)
-    # r = requests.get(CHEMBL_SQLITE_URL, stream=True)
-    # total_size = int(r.headers.get('content-length', 0));
-    #
-    # with open(CHEMBL_SQLITE_DB_DIR+'.tar.gz', 'wb') as f:
-    #     for data in tqdm(r.iter_content(32*1024),
-    #                      total=total_size,
-    #                      unit='B',
-    #                      unit_scale=True,
-    #                      desc='Download database dump'):
-    #         f.write(data)
-    '''download file'''
-    call(["curl", '--output', CHEMBL_DB_DUMP_FILE, '-O', CHEMBL_SQLITE_URL])
-    '''uncompress file'''
-    call(["tar", "zxvf", CHEMBL_DB_DUMP_FILE])
+# if not os.path.exists(CHEMBL_SQLITE_FULL_PATH):
+#     print (CHEMBL_DB_DUMP_FILE, CHEMBL_SQLITE_DB)
+#     # r = requests.get(CHEMBL_SQLITE_URL, stream=True)
+#     # total_size = int(r.headers.get('content-length', 0));
+#     #
+#     # with open(CHEMBL_SQLITE_DB_DIR+'.tar.gz', 'wb') as f:
+#     #     for data in tqdm(r.iter_content(32*1024),
+#     #                      total=total_size,
+#     #                      unit='B',
+#     #                      unit_scale=True,
+#     #                      desc='Download database dump'):
+#     #         f.write(data)
+#     '''download file'''
+#     call(["curl", '--output', CHEMBL_DB_DUMP_FILE, '-O', CHEMBL_SQLITE_URL])
+#     '''uncompress file'''
+#     call(["tar", "zxvf", CHEMBL_DB_DUMP_FILE])
 
 
 def dict_factory(cursor, row):
@@ -186,7 +193,8 @@ GROUP BY molecule_dictionary.molregno
   docs.title,
   docs.authors,
   docs.abstract,
-  docs.doc_type
+  docs.doc_type,
+  docs.patent_id
 FROM
   docs
   ''',
@@ -245,12 +253,21 @@ for table in args.tables:
         print ('can not remove file: %s' % dump_file_name)
 
 extracted_counts = dict()
+
+def get_fingerprint_from_smiles(smiles):
+    m = Chem.MolFromSmiles(smiles)
+    fp = AllChem.GetMorganFingerprintAsBitVect(m, 2, nBits=2048, useFeatures=0, useChirality=0, useBondTypes=1)
+    return fp.ToBitString()
+
+
 for table in tables:
     start_time = time.time()
     i = 0
     dump_file_name = os.path.join(IMPORT_DIR, 'chembl-%s.json' % table)
     if not os.path.exists(dump_file_name):
-        cursor.execute(queries[table])
+        cursor.execute(queries[table]
+                       #.rstrip("; \n") + "\n LIMIT 10"
+                       )
         print ('Extracting data for table %s' % table)
         with open(dump_file_name, 'w') as f:
             for i, row in tqdm(enumerate(cursor)):
@@ -264,21 +281,25 @@ for table in tables:
                     row['author_list'] = row['authors'].split(", ")
 
                 if table == 'molecules' and row['canonical_smiles']:
-                    # print(row['canonical_smiles'])
-                    # print(FINGERPRINT_API_URL + '/binaryfingerprint?smiles=' + row['canonical_smiles'])
-                    fingerprint_r = s.get(FINGERPRINT_API_URL+'/binaryfingerprint',
-                                          params={'smiles': row['canonical_smiles']},
-                                          verify=False)
-                    if fingerprint_r.ok:
-                        fingerprint = fingerprint_r.json()
-                        # fingerprint_int = fingerprint.astype(np.int8).tolist()
-                        # row['fingerprint'] = fingerprint_int
-                        # row['fingerprint_b'] = (fingerprint>0).astype(np.int8).tolist()
-                        # row['fingerprint_nz'] = ' '.join([str(j) for j in fingerprint.nonzero()[0].tolist()])
-                        row['fingerprint_all'] = ' '.join(encode_vector(map(int, list(fingerprint))))
-                        # row['fingerprint_minhash'] = row['fingerprint_nz']
-                    else:
+                    try:
+                        if args.api:
+                            fingerprint_r = s.get(FINGERPRINT_API_URL+'/binaryfingerprint',
+                                                  params={'smiles': row['canonical_smiles']},
+                                                  verify=False)
+                            fingerprint = fingerprint_r.json()
+
+                        else:
+                            fingerprint = get_fingerprint_from_smiles(row['canonical_smiles'])
+                        if fingerprint:
+                            # fingerprint_int = fingerprint.astype(np.int8).tolist()
+                            # row['fingerprint'] = fingerprint_int
+                            # row['fingerprint_b'] = (fingerprint>0).astype(np.int8).tolist()
+                            # row['fingerprint_nz'] = ' '.join([str(j) for j in fingerprint.nonzero()[0].tolist()])
+                            row['fingerprint_all'] = ' '.join(encode_vector(map(int, list(fingerprint))))
+                            # row['fingerprint_minhash'] = row['fingerprint_nz']
+                    except:
                         print(i, 'error finger print for smiles: ' + row['canonical_smiles'])
+
 
                 f.write(json.dumps(row) + '\n')
         print('exporting table %s took %i seconds, %i rows' % (table, time.time() - start_time, i))
@@ -286,6 +307,8 @@ for table in tables:
         for i, line in enumerate(open(dump_file_name)):
             pass
     extracted_counts[table] = i
+
+exit()
 
 '''Import json files in elasticsearch'''
 # SSL client authentication using client_cert and client_key
@@ -344,31 +367,10 @@ for table in tables:
     '''load data'''
     load_table_to_es(table)
 
-# '''load empty kibi configuration'''
-# for table in tables:
-#     index_name = 'chembl-%s' % table
-#     es.index(index='.kibi',
-#              doc_type='index-pattern',
-#              id=index_name,
-#              body={"title": index_name})
-# es.index(index='.kibi',
-#          doc_type='config',
-#          id="4.6.4",
-#          body={"defaultIndex": "chembl-activities"})
 
 
-# '''load kibi preconfigured index'''
 
-if not args.keep_indexes:
-    index_name = '.siren'
-    print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
-    print('creating', index_name, es.indices.create(index=index_name, ignore=400, timeout='30s',
-                                                    body=json.load(open('%s/mapping-.kibi.json' %(args.mappings)))['.siren']))
 
-    index_name = '.sirenaccess'
-    print('deleting', index_name, es.indices.delete(index=index_name, ignore=404, timeout='300s'))
-    print('creating', index_name, es.indices.create(index=index_name, ignore=400, timeout='30s',
-                                                    body=json.load(open('%s/mapping-.kibiaccess.json' %(args.mappings)))['.sirenaccess']))
 #
 # '''load objects'''
 # success, failed = 0, 0
